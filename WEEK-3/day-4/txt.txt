@@ -1,5 +1,0 @@
-// client 3 tarike se client server se baat chit krta hai  (req bhejta hai)
-// 1. query parameter (most popular ) [www.google.com/?color=black& size=32]
-// body parameter (req.body)
-// req.params (/:id)[react router dom mein padha tha dynamic routing mein ]
-
