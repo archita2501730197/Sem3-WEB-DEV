@@ -1,0 +1,4 @@
+what is 3 way handshake in http
+transaction- signal,,request. (on every request new transaction created--drawback) -- 3 way handshake
+
+customize event
