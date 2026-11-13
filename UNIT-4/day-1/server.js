@@ -1,12 +1,19 @@
 const express = require("express");
 const { connection } = require("./config/db");
 const {userRouter} = require("./routes/user.route")
+const {auth} = require("./middleware/auth.middleware")
 
 const app = express();
 
 app.use("/user",userRouter);
 
 app.get("/home", (req, res) => {
+  res.send({ msg: "welcome to Notes application" });
+});
+
+// Middleware 
+app.use
+app.get("/privateroute", (req, res) => {
   res.send({ msg: "welcome to Notes application" });
 });
 
