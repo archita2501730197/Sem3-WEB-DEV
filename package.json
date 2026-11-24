@@ -1,7 +1,28 @@
 {
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "express": "^5.3.0",
     "jsonwebtoken": "^9.0.3",
+    "socket.io": "^4.8.4",
     "ws": "^8.23.0"
-  }
+  },
+  "name": "web-dev-3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/archita2501730197/Sem3-WEB-DEV.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/archita2501730197/Sem3-WEB-DEV/issues"
+  },
+  "homepage": "https://github.com/archita2501730197/Sem3-WEB-DEV#readme"
 }

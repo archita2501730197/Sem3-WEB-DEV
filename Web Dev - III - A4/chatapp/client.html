@@ -1,0 +1,3010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Direct // Messages</title>
+
+    <!-- Socket.IO Client Library with CDN and Dynamic Local Fallback -->
+    <script src="https://cdn.socket.io/4.8.4/socket.io.min.js"
+        integrity="sha384-fBrXvbDtHoeKWJ/hcA6M+YGueiDW+h45I7V6F2kD1S8bOkrF9rZYPLVkCR6BLR/1"
+        crossorigin="anonymous"></script>
+    <script>
+        if (typeof io === "undefined") {
+            document.write('<script src="http://localhost:8080/socket.io/socket.io.js"><\/script>');
+        }
+    </script>
+
+    <!-- Typography: SF Pro / Instagram System Font Stack -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==========================================================================
+           1. AUTHENTIC INSTAGRAM DIRECT DESIGN TOKENS (DARK & LIGHT THEMES)
+           ========================================================================== */
+        :root, body, body[data-theme="dark"] {
+            --ig-bg: #000000;
+            --ig-elevated: #121212;
+            --ig-surface: #181818;
+            --ig-surface-card: #262626;
+            --ig-border: #262626;
+            --ig-border-subtle: #1c1c1c;
+
+            /* Iconic Instagram Gradient for Outgoing Message Bubbles */
+            --ig-bubble-gradient: linear-gradient(135deg, #7638fa 0%, #bd00b5 55%, #f70068 100%);
+            --ig-bubble-in: #262626;
+            --ig-bubble-hover: #323232;
+
+            /* Accent Colors */
+            --ig-blue: #0095f6;
+            --ig-blue-hover: #1877f2;
+            --ig-heart: #ff3040;
+            --ig-green-online: #00ba7c;
+            --ig-story-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+
+            /* Typography Colors */
+            --ig-text-primary: #f5f5f5;
+            --ig-text-secondary: #a8a8a8;
+            --ig-text-muted: #737373;
+            --ig-icon: #f5f5f5;
+
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.25);
+            --ease-smooth: cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        /* Instagram Light Theme */
+        body[data-theme="light"] {
+            --ig-bg: #ffffff;
+            --ig-elevated: #fafafa;
+            --ig-surface: #f0f2f5;
+            --ig-surface-card: #efefef;
+            --ig-border: #dbdbdb;
+            --ig-border-subtle: #ebebeb;
+
+            --ig-bubble-gradient: linear-gradient(135deg, #7638fa 0%, #bd00b5 55%, #f70068 100%);
+            --ig-bubble-in: #efefef;
+            --ig-bubble-hover: #e5e5e5;
+
+            --ig-blue: #0095f6;
+            --ig-blue-hover: #1877f2;
+            --ig-heart: #ff3040;
+            --ig-green-online: #00ba7c;
+            --ig-story-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+
+            --ig-text-primary: #000000;
+            --ig-text-secondary: #737373;
+            --ig-text-muted: #8e8e8e;
+            --ig-icon: #000000;
+        }
+
+        body[data-theme="light"] .ig-chat-header {
+            background-color: rgba(255, 255, 255, 0.88);
+            border-bottom: 1px solid var(--ig-border);
+        }
+
+        body[data-theme="light"] .ig-bubble.ig-wisdom-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 245, 245, 0.95) 100%) !important;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        body[data-theme="light"] .wisdom-text {
+            color: #78350f !important;
+        }
+
+        body[data-theme="light"] .ig-bubble.ig-announcement-card {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(245, 245, 245, 0.95) 100%) !important;
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            color: #881337 !important;
+        }
+
+        body[data-theme="light"] .note-modal-card {
+            background-color: #ffffff;
+            border: 1px solid #dbdbdb;
+        }
+
+        body[data-theme="light"] .note-modal-header {
+            border-bottom: 1px solid #dbdbdb;
+        }
+
+        body[data-theme="light"] .note-modal-title {
+            color: #000000;
+        }
+
+        body[data-theme="light"] .note-preview-bubble {
+            background-color: #efefef;
+            color: #000000;
+        }
+
+        body[data-theme="light"] .note-preview-bubble::after {
+            background-color: #efefef;
+        }
+
+        body[data-theme="light"] .note-modal-input {
+            background-color: #fafafa;
+            border: 1px solid #dbdbdb;
+            color: #000000;
+        }
+
+        body[data-theme="light"] .ig-composer-pill {
+            background-color: #ffffff;
+            border: 1px solid #dbdbdb;
+        }
+
+        body[data-theme="light"] .ig-emoji-drawer {
+            background-color: #ffffff;
+            border: 1px solid #dbdbdb;
+        }
+
+        body[data-theme="light"] .showcase-pill-btn {
+            background-color: #efefef;
+            color: #000000;
+        }
+
+        body[data-theme="light"] .showcase-pill-btn:hover {
+            background-color: #dbdbdb;
+        }
+
+        body, .ig-app-layout, .ig-icon-rail, .ig-threads-sidebar, .ig-chat-main, .ig-composer-pill, .ig-bubble {
+            transition: background-color 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            background-color: var(--ig-bg);
+            color: var(--ig-text-primary);
+            font-family: var(--font-family);
+            font-size: 14px;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .ig-app-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ==========================================================================
+           2. LEFT NARROW ICON DOCK (INSTAGRAM WEB MAIN BAR)
+           ========================================================================== */
+        .ig-icon-rail {
+            width: 72px;
+            height: 100%;
+            background-color: var(--ig-bg);
+            border-right: 1px solid var(--ig-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0 16px;
+            gap: 20px;
+            flex-shrink: 0;
+            z-index: 5;
+        }
+
+        .ig-brand-logo {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 12px;
+            color: #fff;
+            transition: transform 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .ig-brand-logo:hover {
+            transform: scale(1.08);
+        }
+
+        .ig-brand-logo svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .ig-rail-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: transparent;
+            border: none;
+            color: var(--ig-text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .ig-rail-btn:hover {
+            background-color: var(--ig-surface);
+            transform: scale(1.05);
+        }
+
+        .ig-rail-btn.active {
+            color: #fff;
+        }
+
+        .ig-rail-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .ig-rail-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background-color: var(--ig-heart);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            border: 2px solid var(--ig-bg);
+        }
+
+        .ig-rail-spacer {
+            flex: 1;
+        }
+
+        .ig-rail-profile {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7638fa, #bd00b5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: #fff;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .ig-rail-profile:hover {
+            border-color: #fff;
+        }
+
+        /* ==========================================================================
+           3. INBOX LIST COLUMN (INSTAGRAM THREADS & NOTES TRAY)
+           ========================================================================== */
+        .ig-threads-sidebar {
+            width: 360px;
+            height: 100%;
+            background-color: var(--ig-bg);
+            border-right: 1px solid var(--ig-border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 4;
+        }
+
+        .threads-header {
+            height: 72px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-handle-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+
+        .user-handle-dropdown:hover {
+            background-color: var(--ig-surface);
+        }
+
+        .user-handle-text {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--ig-text-primary);
+        }
+
+        .user-handle-dropdown svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--ig-text-primary);
+        }
+
+        .threads-action-icons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-btn-minimal {
+            background: transparent;
+            border: none;
+            color: var(--ig-text-primary);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: opacity 0.2s;
+        }
+
+        .icon-btn-minimal:hover {
+            opacity: 0.7;
+        }
+
+        .icon-btn-minimal svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        /* Notes Tray (Instagram Stories / Notes feature) */
+        .notes-tray {
+            padding: 8px 16px 14px;
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--ig-border-subtle);
+        }
+
+        .notes-tray::-webkit-scrollbar {
+            display: none;
+        }
+
+        .note-bubble-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 76px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.15s;
+        }
+
+        .note-bubble-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .note-bubble-cloud {
+            position: relative;
+            background-color: var(--ig-surface-card);
+            border-radius: 12px;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: var(--ig-text-primary);
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 76px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: background 0.15s;
+        }
+
+        .note-bubble-item:hover .note-bubble-cloud {
+            background-color: #333;
+        }
+
+        .note-bubble-cloud::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: var(--ig-surface-card);
+            border-radius: 50%;
+        }
+
+        .note-avatar-wrapper {
+            position: relative;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            padding: 2px;
+            background: var(--ig-story-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .note-avatar-wrapper.no-story {
+            background: #333;
+        }
+
+        .note-avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--ig-bg);
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .note-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+        }
+
+        .note-avatar-img.alex { background: linear-gradient(135deg, #0284c7, #0369a1); }
+        .note-avatar-img.sarah { background: linear-gradient(135deg, #db2777, #be185d); }
+        .note-avatar-img.bot { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+        .note-user-label {
+            font-size: 11px;
+            color: var(--ig-text-secondary);
+            margin-top: 4px;
+            text-align: center;
+            max-width: 72px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Filter Tabs */
+        .threads-filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px 8px;
+        }
+
+        .threads-filter-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ig-text-primary);
+        }
+
+        .threads-filter-btn {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ig-blue);
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Threads List */
+        .threads-scroll {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .threads-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .threads-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .thread-item {
+            display: flex;
+            align-items: center;
+            height: 72px;
+            padding: 0 18px;
+            cursor: pointer;
+            transition: background 0.15s;
+            position: relative;
+        }
+
+        .thread-item:hover {
+            background-color: var(--ig-elevated);
+        }
+
+        .thread-item.active {
+            background-color: var(--ig-surface);
+        }
+
+        .thread-avatar {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            margin-right: 14px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .thread-avatar.sarah { background: linear-gradient(135deg, #db2777, #be185d); }
+        .thread-avatar.alex { background: linear-gradient(135deg, #0284c7, #0369a1); }
+        .thread-avatar.bot { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .thread-avatar.broadcast { background: linear-gradient(135deg, #f43f5e, #9f1239); }
+
+        .thread-online-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--ig-green-online);
+            border: 2px solid var(--ig-bg);
+        }
+
+        .thread-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .thread-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ig-text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .verified-badge {
+            color: var(--ig-blue);
+            display: inline-flex;
+        }
+
+        .thread-preview {
+            font-size: 12.5px;
+            color: var(--ig-text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .thread-preview.typing {
+            color: var(--ig-blue);
+            font-weight: 500;
+        }
+
+        .thread-unread-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--ig-blue);
+            margin-left: 8px;
+            flex-shrink: 0;
+            display: none;
+        }
+
+        .thread-unread-dot.visible {
+            display: block;
+        }
+
+        /* ==========================================================================
+           4. MAIN CONVERSATION / MESSAGE VIEW (INSTAGRAM DM EXACT UI)
+           ========================================================================== */
+        .ig-chat-main {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--ig-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ig-chat-header {
+            height: 72px;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--ig-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(16px);
+            z-index: 10;
+        }
+
+        .header-profile-link {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 12px;
+        }
+
+        .header-avatar {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .header-avatar.sarah { background: linear-gradient(135deg, #db2777, #be185d); }
+        .header-avatar.alex { background: linear-gradient(135deg, #0284c7, #0369a1); }
+        .header-avatar.bot { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .header-avatar.broadcast { background: linear-gradient(135deg, #f43f5e, #9f1239); }
+
+        .header-meta {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-username {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ig-text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-activity {
+            font-size: 12px;
+            color: var(--ig-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-activity.active-now {
+            color: var(--ig-green-online);
+            font-weight: 500;
+        }
+
+        .header-right-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .sync-presence-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background-color: rgba(0, 149, 246, 0.12);
+            border: 1px solid rgba(0, 149, 246, 0.28);
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ig-blue);
+        }
+
+        .sync-pulse {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--ig-blue);
+            animation: igPulse 1.6s infinite ease-out;
+        }
+
+        @keyframes igPulse {
+            0% { transform: scale(0.9); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+            100% { transform: scale(0.9); opacity: 1; }
+        }
+
+        /* ==========================================================================
+           5. MESSAGES SCROLL CANVAS (INSTAGRAM BUBBLES & INTERACTIONS)
+           ========================================================================== */
+        .ig-messages-canvas {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            scroll-behavior: smooth;
+        }
+
+        .ig-messages-canvas::-webkit-scrollbar {
+            width: 6px;
+        }
+        .ig-messages-canvas::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        .ig-profile-showcase {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .showcase-avatar-ring {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            padding: 3px;
+            background: var(--ig-story-gradient);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .showcase-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #db2777, #be185d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            border: 3px solid var(--ig-bg);
+        }
+
+        .showcase-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ig-text-primary);
+        }
+
+        .showcase-handle {
+            font-size: 14px;
+            color: var(--ig-text-secondary);
+            margin-top: 2px;
+        }
+
+        .showcase-bio {
+            font-size: 13px;
+            color: var(--ig-text-muted);
+            margin-top: 8px;
+            max-width: 380px;
+        }
+
+        .showcase-pill-btn {
+            margin-top: 14px;
+            background-color: var(--ig-surface-card);
+            color: var(--ig-text-primary);
+            border: none;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .showcase-pill-btn:hover {
+            background-color: var(--ig-bubble-hover);
+        }
+
+        .ig-date-pill {
+            align-self: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ig-text-muted);
+            margin: 16px 0 10px;
+        }
+
+        .msg-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            position: relative;
+            animation: igMsgPop 0.22s var(--ease-spring);
+        }
+
+        @keyframes igMsgPop {
+            0% { opacity: 0; transform: translateY(10px) scale(0.96); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .msg-row.out {
+            justify-content: flex-end;
+        }
+
+        .msg-row.in {
+            justify-content: flex-start;
+        }
+
+        .msg-peer-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #db2777, #be185d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            margin-bottom: 2px;
+        }
+
+        .msg-bubble-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            max-width: 60%;
+        }
+
+        .msg-row.out .msg-bubble-wrapper {
+            align-items: flex-end;
+        }
+
+        .ig-bubble {
+            position: relative;
+            padding: 11px 16px;
+            font-size: 14.5px;
+            line-height: 19px;
+            word-wrap: break-word;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .ig-bubble:active {
+            transform: scale(0.98);
+        }
+
+        .msg-row.out .ig-bubble {
+            background: var(--ig-bubble-gradient);
+            color: #ffffff;
+            border-radius: 20px;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 3px 12px rgba(189, 0, 181, 0.25);
+        }
+
+        .msg-row.in .ig-bubble {
+            background-color: var(--ig-bubble-in);
+            color: var(--ig-text-primary);
+            border-radius: 20px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .bubble-heart-badge {
+            position: absolute;
+            bottom: -8px;
+            right: 8px;
+            background-color: var(--ig-surface-card);
+            border: 2px solid var(--ig-bg);
+            border-radius: 12px;
+            padding: 2px 5px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+            animation: heartPop 0.3s var(--ease-spring);
+        }
+
+        @keyframes heartPop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .msg-status-line {
+            font-size: 11px;
+            color: var(--ig-text-muted);
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        .ig-wisdom-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(38, 38, 38, 0.95) 100%) !important;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-radius: 18px !important;
+            padding: 14px 18px !important;
+        }
+
+        .wisdom-author-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #f59e0b;
+            margin-bottom: 6px;
+        }
+
+        .wisdom-text {
+            font-style: italic;
+            color: #fef3c7;
+            font-size: 14.5px;
+            line-height: 20px;
+        }
+
+        .ig-announcement-card {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(38, 38, 38, 0.95) 100%) !important;
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            border-radius: 18px !important;
+            padding: 14px 18px !important;
+        }
+
+        .announcement-author-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #f43f5e;
+            margin-bottom: 6px;
+        }
+
+        .ig-system-chip {
+            align-self: center;
+            font-size: 12px;
+            color: var(--ig-text-muted);
+            padding: 6px 14px;
+            background-color: var(--ig-elevated);
+            border-radius: 14px;
+            margin: 6px 0;
+        }
+
+        .ig-typing-row {
+            display: none;
+            align-items: flex-end;
+            gap: 8px;
+            animation: igMsgPop 0.2s ease;
+        }
+
+        .ig-typing-row.active {
+            display: flex;
+        }
+
+        .ig-typing-bubble {
+            background-color: var(--ig-bubble-in);
+            padding: 12px 16px;
+            border-radius: 20px;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ig-typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: var(--ig-text-secondary);
+            animation: igDotPulse 1.4s infinite ease-in-out both;
+        }
+
+        .ig-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .ig-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes igDotPulse {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .floating-heart {
+            position: fixed;
+            pointer-events: none;
+            color: var(--ig-heart);
+            font-size: 48px;
+            animation: floatUpHeart 0.9s ease-out forwards;
+            z-index: 999;
+        }
+
+        @keyframes floatUpHeart {
+            0% { transform: scale(0.2) translateY(0); opacity: 0; }
+            40% { transform: scale(1.2) translateY(-30px); opacity: 1; }
+            100% { transform: scale(1.5) translateY(-90px); opacity: 0; }
+        }
+
+        /* ==========================================================================
+           6. COMPOSER BOTTOM BAR (EXACT INSTAGRAM DM PILL INPUT)
+           ========================================================================== */
+        .ig-composer-area {
+            padding: 12px 24px 20px;
+            background-color: var(--ig-bg);
+            z-index: 10;
+        }
+
+        .ig-composer-pill {
+            display: flex;
+            align-items: center;
+            background-color: var(--ig-bg);
+            border: 1px solid var(--ig-border);
+            border-radius: 24px;
+            padding: 6px 12px 6px 14px;
+            gap: 10px;
+            transition: border-color 0.2s;
+        }
+
+        .ig-composer-pill:focus-within {
+            border-color: #474747;
+        }
+
+        .ig-input-icon {
+            background: transparent;
+            border: none;
+            color: var(--ig-text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            transition: transform 0.15s, opacity 0.15s;
+        }
+
+        .ig-input-icon:hover {
+            opacity: 0.7;
+            transform: scale(1.08);
+        }
+
+        .ig-input-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .ig-message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--ig-text-primary);
+            font-size: 14.5px;
+            font-family: inherit;
+        }
+
+        .ig-message-input::placeholder {
+            color: var(--ig-text-muted);
+        }
+
+        .ig-send-btn {
+            background: transparent;
+            border: none;
+            color: var(--ig-blue);
+            font-size: 14.5px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 4px 8px;
+            display: none;
+            transition: color 0.15s;
+        }
+
+        .ig-send-btn:hover {
+            color: #fff;
+        }
+
+        .ig-send-btn.visible {
+            display: block;
+        }
+
+        .composer-action-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .composer-action-icons.hidden {
+            display: none;
+        }
+
+
+        .ig-emoji-drawer {
+            position: absolute;
+            bottom: 78px;
+            left: 24px;
+            width: 320px;
+            background-color: var(--ig-surface);
+            border: 1px solid var(--ig-border);
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 50;
+        }
+
+        .ig-emoji-drawer.open {
+            display: flex;
+        }
+
+        .emoji-grid-ig {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .emoji-tile-ig {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .emoji-tile-ig:hover {
+            background-color: var(--ig-surface-card);
+            transform: scale(1.2);
+        }
+
+        /* ==========================================================================
+           7. INSTAGRAM NOTE MODAL & INTERACTION
+           ========================================================================== */
+        .note-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: modalFade 0.2s ease;
+        }
+
+        .note-modal-overlay.open {
+            display: flex;
+        }
+
+        @keyframes modalFade {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .note-modal-card {
+            width: 90%;
+            max-width: 400px;
+            background-color: #262626;
+            border-radius: 18px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+            animation: cardScale 0.25s var(--ease-spring);
+        }
+
+        @keyframes cardScale {
+            0% { transform: scale(0.92); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .note-modal-header {
+            height: 52px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #363636;
+        }
+
+        .note-modal-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .note-modal-close {
+            background: none;
+            border: none;
+            color: #a8a8a8;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .note-modal-close:hover {
+            color: #fff;
+        }
+
+        .note-modal-share-btn {
+            background: none;
+            border: none;
+            color: var(--ig-blue);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .note-modal-share-btn:hover {
+            color: #fff;
+        }
+
+        .note-modal-body {
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .note-preview-bubble {
+            background-color: #363636;
+            border-radius: 16px;
+            padding: 10px 16px;
+            font-size: 14px;
+            color: #fff;
+            max-width: 280px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .note-preview-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background-color: #363636;
+            border-radius: 50%;
+        }
+
+        .note-modal-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 24px;
+            color: #fff;
+            border: 3px solid var(--ig-bg);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        }
+
+        .note-modal-input {
+            width: 100%;
+            background-color: #1a1a1a;
+            border: 1px solid #363636;
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            text-align: center;
+        }
+
+        .note-modal-input:focus {
+            border-color: var(--ig-blue);
+        }
+
+        .note-char-counter {
+            font-size: 11px;
+            color: #737373;
+            align-self: flex-end;
+        }
+
+        /* Voice Recording & Playback Styling */
+        .ig-voice-recording-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 12px;
+            animation: igMsgPop 0.2s ease;
+        }
+
+        .ig-voice-recording-bar.active {
+            display: flex;
+        }
+
+        .rec-timer-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #ff3040;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .rec-red-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ff3040;
+            animation: recBlink 1s infinite;
+        }
+
+        @keyframes recBlink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.85); }
+        }
+
+        .rec-waveform-live {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3.5px;
+            height: 24px;
+        }
+
+        .rec-live-bar {
+            width: 3px;
+            height: 6px;
+            background-color: var(--ig-blue);
+            border-radius: 2px;
+            animation: liveWave 0.7s infinite ease-in-out alternate;
+        }
+
+        @keyframes liveWave {
+            0% { height: 4px; }
+            100% { height: 22px; }
+        }
+
+        .rec-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rec-cancel-btn {
+            background: none;
+            border: none;
+            color: var(--ig-text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.15s;
+        }
+
+        .rec-cancel-btn:hover {
+            color: #ff3040;
+        }
+
+        .rec-send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--ig-blue);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s, background-color 0.15s;
+        }
+
+        .rec-send-btn:hover {
+            transform: scale(1.08);
+            background-color: var(--ig-blue-hover);
+        }
+
+        .rec-send-btn svg {
+            width: 15px;
+            height: 15px;
+            fill: currentColor;
+        }
+
+        /* Voice Note Bubble in Chat */
+        .ig-voice-bubble {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 14px;
+            min-width: 220px;
+        }
+
+        .voice-play-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.22);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.15s, background-color 0.15s;
+        }
+
+        .voice-play-btn:hover {
+            transform: scale(1.06);
+            background-color: rgba(255, 255, 255, 0.35);
+        }
+
+        body[data-theme="light"] .msg-row.in .voice-play-btn {
+            background-color: rgba(0, 0, 0, 0.08);
+            color: #000;
+        }
+
+        .voice-play-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .voice-waveform-track {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 2.5px;
+            height: 28px;
+            cursor: pointer;
+        }
+
+        .voice-bar {
+            width: 3px;
+            border-radius: 2px;
+            background-color: rgba(255, 255, 255, 0.4);
+            transition: height 0.15s, background-color 0.15s;
+        }
+
+        .voice-bar.active {
+            background-color: #ffffff;
+        }
+
+        body[data-theme="light"] .msg-row.in .voice-bar {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        body[data-theme="light"] .msg-row.in .voice-bar.active {
+            background-color: var(--ig-blue);
+        }
+
+        .voice-duration-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.85);
+            font-variant-numeric: tabular-nums;
+            margin-left: 2px;
+        }
+
+        body[data-theme="light"] .msg-row.in .voice-duration-label {
+            color: var(--ig-text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ig-app-layout">
+
+        <!-- ==================================================================
+             1. LEFT ICON RAIL
+             ================================================================== -->
+        <nav class="ig-icon-rail">
+            <div class="ig-brand-logo" id="logoToggle" title="Instagram Direct">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+            </div>
+
+            <button class="ig-rail-btn" title="Home">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9.005 16.545a2.997 2.997 0 0 1 2.997-2.997A2.997 2.997 0 0 1 15 16.545V22h7V11.543L12 2 2 11.543V22h7.005z"/>
+                </svg>
+            </button>
+
+            <button class="ig-rail-btn" title="Search">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19 10.5A8.5 8.5 0 1 1 10.5 2a8.5 8.5 0 0 1 8.5 8.5zm1.5 8.5l-4.35-4.35a10.5 10.5 0 1 0-1.414 1.414L19 20.414 20.5 19z"/>
+                </svg>
+            </button>
+
+            <button class="ig-rail-btn active" title="Messages">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12.003 2.001a9.99 9.99 0 0 0-8.683 14.935L2.05 21.95a.75.75 0 0 0 .937.937l5.014-1.27a9.99 9.99 0 1 0 3.999-19.616zm0 18.5a8.49 8.49 0 0 1-4.328-1.182.75.75 0 0 0-.46-.118l-3.693.935.936-3.693a.75.75 0 0 0-.118-.46A8.5 8.5 0 1 1 12.003 20.5z"/>
+                </svg>
+                <span class="ig-rail-badge">2</span>
+            </button>
+
+            <button class="ig-rail-btn" id="soundToggleBtn" title="Toggle Direct Audio Chimes">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                </svg>
+            </button>
+
+            <!-- Light / Dark Theme Switcher Button -->
+            <button class="ig-rail-btn" id="themeToggleBtn" title="Switch Theme (Light / Dark)">
+                <svg id="themeIcon" viewBox="0 0 24 24">
+                    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+                </svg>
+            </button>
+
+            <div class="ig-rail-spacer"></div>
+
+            <div class="ig-rail-profile" id="railProfileBtn">
+                <span id="railProfileLetter">A</span>
+            </div>
+        </nav>
+
+        <!-- ==================================================================
+             2. INBOX THREADS SIDEBAR
+             ================================================================== -->
+        <aside class="ig-threads-sidebar">
+
+            <div class="threads-header">
+                <div class="user-handle-dropdown" id="userSwitchDropdown">
+                    <span class="user-handle-text" id="currentUserHandle">alex_dev</span>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 15.5l-6-6 1.4-1.4 4.6 4.6 4.6-4.6 1.4 1.4z"/>
+                    </svg>
+                </div>
+                <div class="threads-action-icons">
+                    <button class="icon-btn-minimal" title="New Message">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12.3 3.7l4 4L4 20H0v-4L12.3 3.7zm1.4-1.4l2.6-2.6a1 1 0 0 1 1.4 0l2.6 2.6a1 1 0 0 1 0 1.4l-2.6 2.6-4-4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Notes Tray (Now Fully Clickable & Editable) -->
+            <div class="notes-tray">
+                <!-- User Note (Clickable to Edit/Share thought) -->
+                <div class="note-bubble-item" id="myNoteItem" title="Click to update your note">
+                    <div class="note-bubble-cloud" id="myNoteText">+ Note</div>
+                    <div class="note-avatar-wrapper">
+                        <div class="note-avatar-inner">
+                            <div class="note-avatar-img alex" id="myNoteAvatar">A</div>
+                        </div>
+                    </div>
+                    <span class="note-user-label">Your note</span>
+                </div>
+
+                <!-- Peer Note (Sarah / Alex) -->
+                <div class="note-bubble-item" id="peerNoteItem" title="Click to view peer note">
+                    <div class="note-bubble-cloud" id="peerNoteText">Online now ✨</div>
+                    <div class="note-avatar-wrapper">
+                        <div class="note-avatar-inner">
+                            <div class="note-avatar-img sarah" id="peerNoteAvatar">S</div>
+                        </div>
+                    </div>
+                    <span class="note-user-label" id="peerNoteName">sarah_codes</span>
+                </div>
+
+                <!-- Server Bot Note -->
+                <div class="note-bubble-item" id="botNoteItem" title="Click to view Gyan Bot note">
+                    <div class="note-bubble-cloud">Gyan ✦</div>
+                    <div class="note-avatar-wrapper no-story">
+                        <div class="note-avatar-inner">
+                            <div class="note-avatar-img bot">✦</div>
+                        </div>
+                    </div>
+                    <span class="note-user-label">gyan_bot</span>
+                </div>
+            </div>
+
+            <div class="threads-filter-row">
+                <span class="threads-filter-title">Messages</span>
+                <button class="threads-filter-btn">Requests (0)</button>
+            </div>
+
+            <!-- Threads Scroll List (Now Fully Switchable) -->
+            <div class="threads-scroll">
+
+                <!-- 1. Active Direct Conversation (Sarah / Alex) -->
+                <div class="thread-item active" data-thread="peer">
+                    <div class="thread-avatar sarah" id="threadAvatarPeer">
+                        <span id="threadAvatarLetter">S</span>
+                        <div class="thread-online-dot"></div>
+                    </div>
+                    <div class="thread-info">
+                        <div class="thread-name">
+                            <span id="threadNamePeer">sarah_codes</span>
+                            <span class="verified-badge">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="thread-preview" id="threadLastMsg">
+                            <span>Active now</span>
+                        </div>
+                    </div>
+                    <div class="thread-unread-dot" id="peerUnreadDot"></div>
+                </div>
+
+                <!-- 2. Server Wisdom Channel (gyankibaat) -->
+                <div class="thread-item" data-thread="bot">
+                    <div class="thread-avatar bot">✦</div>
+                    <div class="thread-info">
+                        <div class="thread-name">
+                            <span>gyan_bot_official</span>
+                            <span class="verified-badge">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="thread-preview" id="botLastMsg">
+                            <span>welcome to socket.io server</span>
+                        </div>
+                    </div>
+                    <div class="thread-unread-dot" id="botUnreadDot"></div>
+                </div>
+
+                <!-- 3. Announcement Broadcast Channel -->
+                <div class="thread-item" data-thread="announcement">
+                    <div class="thread-avatar broadcast">📢</div>
+                    <div class="thread-info">
+                        <div class="thread-name">
+                            <span>webdev3_broadcast</span>
+                        </div>
+                        <div class="thread-preview" id="announcementLastMsg">
+                            <span>Today is last time we study web dev -3</span>
+                        </div>
+                    </div>
+                    <div class="thread-unread-dot" id="announcementUnreadDot"></div>
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- ==================================================================
+             3. MAIN MESSAGE CONVERSATION AREA
+             ================================================================== -->
+        <main class="ig-chat-main">
+
+            <header class="ig-chat-header">
+                <div class="header-profile-link">
+                    <div class="header-avatar sarah" id="chatHeaderAvatar">S</div>
+                    <div class="header-meta">
+                        <div class="header-username">
+                            <span id="chatHeaderName">sarah_codes</span>
+                            <span class="verified-badge" id="chatHeaderVerified">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="header-activity active-now" id="chatHeaderActivity">
+                            <span>Active now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-right-actions">
+                    <div class="sync-presence-pill" id="syncPresencePill" title="Multi-tab 2-way real-time active">
+                        <span class="sync-pulse"></span>
+                        <span id="syncPresenceText">2 Users Connected</span>
+                    </div>
+
+                    <button class="icon-btn-minimal" title="Start Audio Call">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M6.62 10.79a15.053 15.053 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn-minimal" title="Start Video Call">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn-minimal" title="Conversation Details">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Messages Stream (The Instagram Message Part) -->
+            <div class="ig-messages-canvas" id="messagesCanvas">
+
+                <!-- Profile Showcase inside message stream -->
+                <div class="ig-profile-showcase" id="profileShowcase">
+                    <div class="showcase-avatar-ring">
+                        <div class="showcase-avatar-img" id="showcaseAvatarImg">S</div>
+                    </div>
+                    <div class="showcase-name" id="showcaseName">Sarah Chen</div>
+                    <div class="showcase-handle" id="showcaseHandle">sarah_codes • Instagram</div>
+                    <div class="showcase-bio" id="showcaseBio">1.8k followers • 42 posts • Web Dev 3 Socket.IO Project</div>
+                    <button class="showcase-pill-btn">View Profile</button>
+                </div>
+
+                <div class="ig-date-pill">TODAY</div>
+
+                <!-- Initial Protocol Message -->
+                <div class="ig-system-chip" id="systemChipStatus">Connected to Socket.IO backend on :8080</div>
+
+                <!-- Messages Container -->
+                <div id="activeMessagesList" style="display: flex; flex-direction: column; gap: 4px; width: 100%;"></div>
+
+                <!-- Instagram Typing Indicator -->
+                <div class="ig-typing-row" id="igTypingRow">
+                    <div class="msg-peer-avatar" id="typingPeerAvatar">S</div>
+                    <div class="ig-typing-bubble">
+                        <div class="ig-typing-dot"></div>
+                        <div class="ig-typing-dot"></div>
+                        <div class="ig-typing-dot"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Composer Area -->
+            <footer class="ig-composer-area">
+                <div class="ig-composer-pill">
+
+                    <!-- Text Composer View -->
+                    <div id="composerTextRow" style="display: flex; align-items: center; width: 100%; gap: 10px;">
+                        <button type="button" class="ig-input-icon" id="emojiToggleBtn" title="Emoji">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm3.5-9a1.5 1.5 0 1 0-1.5-1.5 1.5 1.5 0 0 0 1.5 1.5zm-7 0A1.5 1.5 0 1 0 7 9.5 1.5 1.5 0 0 0 8.5 11zm3.5 6.5a6 6 0 0 0 4.67-2.25.75.75 0 0 0-1.16-.95 4.5 4.5 0 0 1-7 0 .75.75 0 0 0-1.16.95A6 6 0 0 0 12 17.5z"/>
+                            </svg>
+                        </button>
+
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            class="ig-message-input" 
+                            placeholder="Message..." 
+                            autocomplete="off" 
+                            maxlength="600"
+                        />
+
+                        <button type="button" class="ig-send-btn" id="sendBtn">Send</button>
+
+                        <div class="composer-action-icons" id="composerIcons">
+                            <button type="button" class="ig-input-icon" id="micBtn" title="Record Voice Message">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                                </svg>
+                            </button>
+
+                            <button type="button" class="ig-input-icon" id="photoBtn" title="Attach Media">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                </svg>
+                            </button>
+
+                            <button type="button" class="ig-input-icon" id="heartBtn" title="Like / Send Heart">
+                                <svg viewBox="0 0 24 24" style="color: var(--ig-text-primary);">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Voice Recording Bar (Active while recording) -->
+                    <div class="ig-voice-recording-bar" id="voiceRecordingBar">
+                        <div class="rec-timer-group">
+                            <span class="rec-red-dot"></span>
+                            <span id="recTimerDisplay">0:00</span>
+                        </div>
+                        <div class="rec-waveform-live" id="recWaveformLive">
+                            <div class="rec-live-bar" style="animation-delay: 0.1s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.35s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.2s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.5s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.15s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.4s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.25s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.6s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.3s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.15s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.45s;"></div>
+                            <div class="rec-live-bar" style="animation-delay: 0.2s;"></div>
+                        </div>
+                        <div class="rec-actions">
+                            <button type="button" class="rec-cancel-btn" id="cancelRecBtn" title="Discard Recording">✕</button>
+                            <button type="button" class="rec-send-btn" id="sendVoiceBtn" title="Send Voice Message">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </footer>
+
+            <!-- Instagram Emoji Popover -->
+            <div class="ig-emoji-drawer" id="emojiDrawer">
+                <div class="emoji-grid-ig">
+                    <span class="emoji-tile-ig">❤️</span>
+                    <span class="emoji-tile-ig">😂</span>
+                    <span class="emoji-tile-ig">😮</span>
+                    <span class="emoji-tile-ig">😢</span>
+                    <span class="emoji-tile-ig">👏</span>
+                    <span class="emoji-tile-ig">🔥</span>
+                    <span class="emoji-tile-ig">🎉</span>
+                    <span class="emoji-tile-ig">✨</span>
+                    <span class="emoji-tile-ig">🚀</span>
+                    <span class="emoji-tile-ig">💯</span>
+                    <span class="emoji-tile-ig">🙌</span>
+                    <span class="emoji-tile-ig">😍</span>
+                    <span class="emoji-tile-ig">👍</span>
+                    <span class="emoji-tile-ig">🎓</span>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================================================================
+         NOTE MODAL (POPUP TO SHARE / EDIT INSTAGRAM NOTE)
+         ================================================================== -->
+    <div class="note-modal-overlay" id="noteModalOverlay">
+        <div class="note-modal-card">
+            <div class="note-modal-header">
+                <button class="note-modal-close" id="closeNoteModal">✕</button>
+                <span class="note-modal-title">New note</span>
+                <button class="note-modal-share-btn" id="shareNoteBtn">Share</button>
+            </div>
+            <div class="note-modal-body">
+                <div class="note-preview-bubble" id="noteModalBubble">Share a thought...</div>
+                <div class="note-modal-avatar" id="noteModalAvatar">A</div>
+                <input 
+                    type="text" 
+                    class="note-modal-input" 
+                    id="noteModalInput" 
+                    placeholder="Share what's on your mind..." 
+                    maxlength="60" 
+                    autocomplete="off"
+                />
+                <span class="note-char-counter" id="noteCharCounter">0/60</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================================
+         7. REAL-TIME ENGINE (MULTI-THREAD CHAT + NOTE + SOCKET.IO)
+         ================================================================== -->
+    <script>
+        (function () {
+            "use strict";
+
+            // User Profiles
+            const profiles = {
+                alex: {
+                    id: "alex",
+                    name: "Alex Turner",
+                    handle: "alex_dev",
+                    initial: "A",
+                    class: "alex",
+                    note: "Coding DM 🚀"
+                },
+                sarah: {
+                    id: "sarah",
+                    name: "Sarah Chen",
+                    handle: "sarah_codes",
+                    initial: "S",
+                    class: "sarah",
+                    note: "Online now ✨"
+                }
+            };
+
+            // Detect or assign persona
+            let currentUserId = sessionStorage.getItem("ig_user_id");
+            if (!currentUserId) {
+                const primaryClaimed = localStorage.getItem("ig_alex_tab_claim");
+                if (primaryClaimed && Date.now() - parseInt(primaryClaimed, 10) < 5000) {
+                    currentUserId = "sarah";
+                } else {
+                    currentUserId = "alex";
+                    localStorage.setItem("ig_alex_tab_claim", String(Date.now()));
+                }
+                sessionStorage.setItem("ig_user_id", currentUserId);
+            }
+
+            let me = profiles[currentUserId] || profiles.alex;
+            let peer = me.id === "alex" ? profiles.sarah : profiles.alex;
+
+            // Load saved note if exists
+            const savedMyNote = localStorage.getItem("ig_note_" + me.id);
+            if (savedMyNote) me.note = savedMyNote;
+
+            // Active Thread State: 'peer' | 'bot' | 'announcement'
+            let activeThread = "peer";
+
+            // Conversation In-Memory Stores
+            const conversations = {
+                peer: [],
+                bot: [],
+                announcement: []
+            };
+
+            // DOM References
+            const currentUserHandle = document.getElementById("currentUserHandle");
+            const railProfileLetter = document.getElementById("railProfileLetter");
+            const railProfileBtn = document.getElementById("railProfileBtn");
+            const userSwitchDropdown = document.getElementById("userSwitchDropdown");
+            const switchUserQuickBtn = document.getElementById("switchUserQuickBtn");
+            const switchUserTopBtn = document.getElementById("switchUserTopBtn");
+            const myNoteItem = document.getElementById("myNoteItem");
+            const myNoteAvatar = document.getElementById("myNoteAvatar");
+            const myNoteText = document.getElementById("myNoteText");
+            const peerNoteItem = document.getElementById("peerNoteItem");
+            const peerNoteAvatar = document.getElementById("peerNoteAvatar");
+            const peerNoteName = document.getElementById("peerNoteName");
+            const peerNoteText = document.getElementById("peerNoteText");
+            const botNoteItem = document.getElementById("botNoteItem");
+            const threadNamePeer = document.getElementById("threadNamePeer");
+            const threadAvatarLetter = document.getElementById("threadAvatarLetter");
+            const threadLastMsg = document.getElementById("threadLastMsg");
+            const botLastMsg = document.getElementById("botLastMsg");
+            const announcementLastMsg = document.getElementById("announcementLastMsg");
+            const chatHeaderAvatar = document.getElementById("chatHeaderAvatar");
+            const chatHeaderName = document.getElementById("chatHeaderName");
+            const chatHeaderVerified = document.getElementById("chatHeaderVerified");
+            const chatHeaderActivity = document.getElementById("chatHeaderActivity");
+            const showcaseAvatarImg = document.getElementById("showcaseAvatarImg");
+            const showcaseName = document.getElementById("showcaseName");
+            const showcaseHandle = document.getElementById("showcaseHandle");
+            const showcaseBio = document.getElementById("showcaseBio");
+            const messagesCanvas = document.getElementById("messagesCanvas");
+            const activeMessagesList = document.getElementById("activeMessagesList");
+            const messageInput = document.getElementById("messageInput");
+            const sendBtn = document.getElementById("sendBtn");
+            const composerIcons = document.getElementById("composerIcons");
+            const heartBtn = document.getElementById("heartBtn");
+            const emojiToggleBtn = document.getElementById("emojiToggleBtn");
+            const emojiDrawer = document.getElementById("emojiDrawer");
+            const soundToggleBtn = document.getElementById("soundToggleBtn");
+            const igTypingRow = document.getElementById("igTypingRow");
+            const typingPeerAvatar = document.getElementById("typingPeerAvatar");
+            const noteModalOverlay = document.getElementById("noteModalOverlay");
+            const closeNoteModal = document.getElementById("closeNoteModal");
+            const shareNoteBtn = document.getElementById("shareNoteBtn");
+            const noteModalBubble = document.getElementById("noteModalBubble");
+            const noteModalAvatar = document.getElementById("noteModalAvatar");
+            const noteModalInput = document.getElementById("noteModalInput");
+            const noteCharCounter = document.getElementById("noteCharCounter");
+            const threadItems = document.querySelectorAll(".thread-item");
+            const composerTextRow = document.getElementById("composerTextRow");
+            const voiceRecordingBar = document.getElementById("voiceRecordingBar");
+            const recTimerDisplay = document.getElementById("recTimerDisplay");
+            const cancelRecBtn = document.getElementById("cancelRecBtn");
+            const sendVoiceBtn = document.getElementById("sendVoiceBtn");
+
+            // Sound Effects
+            let soundEnabled = true;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = AudioContext ? new AudioContext() : null;
+
+            function playSound(type) {
+                if (!soundEnabled || !audioCtx) return;
+                try {
+                    if (audioCtx.state === "suspended") audioCtx.resume();
+                    const now = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    if (type === "send") {
+                        osc.type = "sine";
+                        osc.frequency.setValueAtTime(480, now);
+                        osc.frequency.exponentialRampToValueAtTime(840, now + 0.08);
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                        osc.start(now);
+                        osc.stop(now + 0.08);
+                    } else if (type === "receive") {
+                        osc.type = "triangle";
+                        osc.frequency.setValueAtTime(650, now);
+                        osc.frequency.setValueAtTime(980, now + 0.07);
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                        osc.start(now);
+                        osc.stop(now + 0.2);
+                    } else if (type === "heart") {
+                        osc.type = "sine";
+                        osc.frequency.setValueAtTime(523.25, now);
+                        osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12);
+                        gain.gain.setValueAtTime(0.07, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                        osc.start(now);
+                        osc.stop(now + 0.15);
+                    }
+                } catch (e) {}
+            }
+
+            // Sync Identity Display
+            function renderIdentity() {
+                currentUserHandle.textContent = me.handle;
+                railProfileLetter.textContent = me.initial;
+
+                myNoteAvatar.textContent = me.initial;
+                myNoteAvatar.className = "note-avatar-img " + me.class;
+                myNoteText.textContent = me.note || "+ Note";
+
+                peerNoteAvatar.textContent = peer.initial;
+                peerNoteAvatar.className = "note-avatar-img " + peer.class;
+                peerNoteName.textContent = peer.handle;
+                peerNoteText.textContent = peer.note || "Online now ✨";
+
+                threadNamePeer.textContent = peer.handle;
+                threadAvatarLetter.textContent = peer.initial;
+
+                noteModalAvatar.textContent = me.initial;
+                noteModalAvatar.className = "note-modal-avatar " + me.class;
+
+                updateThreadView();
+            }
+
+            function scrollBottom() {
+                messagesCanvas.scrollTop = messagesCanvas.scrollHeight;
+            }
+
+            // ==================================================================
+            // THREAD SWITCHING ENGINE (PEER / GYAN BOT / ANNOUNCEMENTS)
+            // ==================================================================
+            function switchThread(target) {
+                if (activeThread === target) return;
+                activeThread = target;
+
+                threadItems.forEach(item => {
+                    if (item.getAttribute("data-thread") === target) {
+                        item.classList.add("active");
+                        const unreadDot = item.querySelector(".thread-unread-dot");
+                        if (unreadDot) unreadDot.classList.remove("visible");
+                    } else {
+                        item.classList.remove("active");
+                    }
+                });
+
+                updateThreadView();
+            }
+
+            threadItems.forEach(item => {
+                item.addEventListener("click", function () {
+                    const target = this.getAttribute("data-thread");
+                    switchThread(target);
+                });
+            });
+
+            function updateThreadView() {
+                activeMessagesList.innerHTML = "";
+
+                if (activeThread === "peer") {
+                    chatHeaderAvatar.textContent = peer.initial;
+                    chatHeaderAvatar.className = "header-avatar " + peer.class;
+                    chatHeaderName.textContent = peer.handle;
+                    chatHeaderVerified.style.display = "inline-flex";
+                    chatHeaderActivity.innerHTML = '<span>Active now</span>';
+                    chatHeaderActivity.className = "header-activity active-now";
+
+                    showcaseAvatarImg.textContent = peer.initial;
+                    showcaseAvatarImg.style.background = peer.id === "alex" 
+                        ? "linear-gradient(135deg, #0284c7, #0369a1)" 
+                        : "linear-gradient(135deg, #db2777, #be185d)";
+                    showcaseName.textContent = peer.name;
+                    showcaseHandle.textContent = peer.handle + " • Instagram";
+                    showcaseBio.textContent = "1.8k followers • 42 posts • Web Dev 3 Socket.IO Project";
+                    typingPeerAvatar.textContent = peer.initial;
+                    messageInput.placeholder = "Message " + peer.name + "...";
+                } 
+                else if (activeThread === "bot") {
+                    chatHeaderAvatar.textContent = "✦";
+                    chatHeaderAvatar.className = "header-avatar bot";
+                    chatHeaderName.textContent = "gyan_bot_official";
+                    chatHeaderVerified.style.display = "inline-flex";
+                    chatHeaderActivity.innerHTML = '<span>Automated AI • Always Active</span>';
+                    chatHeaderActivity.className = "header-activity";
+
+                    showcaseAvatarImg.textContent = "✦";
+                    showcaseAvatarImg.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+                    showcaseName.textContent = "Gyan Bot Official";
+                    showcaseHandle.textContent = "gyan_bot_official • Verified Bot";
+                    showcaseBio.textContent = "Broadcasts server wisdom quotes via Socket.IO 'gyankibaat'. Ask questions anytime!";
+                    typingPeerAvatar.textContent = "✦";
+                    messageInput.placeholder = "Ask Gyan Bot for wisdom (emits 'kuchbhi')...";
+                } 
+                else if (activeThread === "announcement") {
+                    chatHeaderAvatar.textContent = "📢";
+                    chatHeaderAvatar.className = "header-avatar broadcast";
+                    chatHeaderName.textContent = "webdev3_broadcast";
+                    chatHeaderVerified.style.display = "none";
+                    chatHeaderActivity.innerHTML = '<span>Official College Broadcast Channel</span>';
+                    chatHeaderActivity.className = "header-activity";
+
+                    showcaseAvatarImg.textContent = "📢";
+                    showcaseAvatarImg.style.background = "linear-gradient(135deg, #f43f5e, #9f1239)";
+                    showcaseName.textContent = "Web Dev 3 Broadcast";
+                    showcaseHandle.textContent = "webdev3_broadcast • Official Channel";
+                    showcaseBio.textContent = "Live classroom announcements emitted via Socket.IO 'announcement' channel.";
+                    typingPeerAvatar.textContent = "📢";
+                    messageInput.placeholder = "Broadcast response (emits 'kuchbhi')...";
+                }
+
+                // Render existing stored messages for this thread
+                const list = conversations[activeThread] || [];
+                list.forEach(node => {
+                    activeMessagesList.appendChild(node);
+                });
+                scrollBottom();
+            }
+
+            // ==================================================================
+            // NOTE MODAL & INTERACTION ENGINE
+            // ==================================================================
+            function openNoteEditor() {
+                noteModalOverlay.classList.add("open");
+                noteModalInput.value = me.note !== "+ Note" ? me.note : "";
+                noteModalBubble.textContent = noteModalInput.value.trim() || "Share a thought...";
+                noteCharCounter.textContent = noteModalInput.value.length + "/60";
+                setTimeout(() => noteModalInput.focus(), 100);
+            }
+
+            myNoteItem.addEventListener("click", openNoteEditor);
+
+            peerNoteItem.addEventListener("click", function () {
+                switchThread("peer");
+                renderSystemChip("Viewing @" + peer.handle + "'s chat from Note");
+            });
+
+            botNoteItem.addEventListener("click", function () {
+                switchThread("bot");
+            });
+
+            closeNoteModal.addEventListener("click", function () {
+                noteModalOverlay.classList.remove("open");
+            });
+
+            noteModalOverlay.addEventListener("click", function (e) {
+                if (e.target === noteModalOverlay) {
+                    noteModalOverlay.classList.remove("open");
+                }
+            });
+
+            noteModalInput.addEventListener("input", function () {
+                const val = this.value;
+                noteModalBubble.textContent = val.trim() || "Share a thought...";
+                noteCharCounter.textContent = val.length + "/60";
+            });
+
+            noteModalInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    saveAndShareNote();
+                }
+            });
+
+            shareNoteBtn.addEventListener("click", saveAndShareNote);
+
+            function saveAndShareNote() {
+                const text = noteModalInput.value.trim();
+                if (!text) {
+                    noteModalOverlay.classList.remove("open");
+                    return;
+                }
+                me.note = text;
+                localStorage.setItem("ig_note_" + me.id, text);
+                myNoteText.textContent = text;
+                noteModalOverlay.classList.remove("open");
+
+                // Broadcast note update to other tab
+                channel.postMessage({
+                    type: "NOTE_UPDATE",
+                    userId: me.id,
+                    note: text
+                });
+
+                renderSystemChip("Your note was shared: “" + text + "”");
+                playSound("heart");
+            }
+
+            // ==================================================================
+            // BROADCAST CHANNEL & CROSS-TAB SYNCHRONIZATION
+            // ==================================================================
+            const channel = new BroadcastChannel("ig_direct_message_conduit");
+            let typingTimeout = null;
+
+            function broadcastPresence() {
+                channel.postMessage({
+                    type: "PRESENCE",
+                    userId: me.id,
+                    handle: me.handle,
+                    note: me.note,
+                    time: Date.now()
+                });
+            }
+
+            setInterval(function () {
+                broadcastPresence();
+                if (me.id === "alex") {
+                    localStorage.setItem("ig_alex_tab_claim", String(Date.now()));
+                }
+            }, 3000);
+            broadcastPresence();
+
+            // ==================================================================
+            // MESSAGE BUILDERS & DOM INJECTION
+            // ==================================================================
+            function renderOutgoingMessage(text, msgId, threadKey) {
+                const key = threadKey || activeThread;
+                const row = document.createElement("div");
+                row.className = "msg-row out";
+                if (msgId) row.id = "msg-" + msgId;
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "msg-bubble-wrapper";
+
+                const bubble = document.createElement("div");
+                bubble.className = "ig-bubble";
+                bubble.textContent = text;
+
+                bubble.addEventListener("dblclick", function (e) {
+                    toggleHeartReaction(wrapper, e);
+                });
+
+                const statusLine = document.createElement("div");
+                statusLine.className = "msg-status-line";
+                statusLine.textContent = "Seen";
+
+                wrapper.appendChild(bubble);
+                wrapper.appendChild(statusLine);
+                row.appendChild(wrapper);
+
+                conversations[key].push(row);
+
+                if (activeThread === key) {
+                    activeMessagesList.appendChild(row);
+                    scrollBottom();
+                }
+
+                playSound("send");
+
+                if (key === "peer") threadLastMsg.textContent = "You: " + text;
+                else if (key === "bot") botLastMsg.textContent = "You: " + text;
+                else if (key === "announcement") announcementLastMsg.textContent = "You: " + text;
+            }
+
+            function renderIncomingMessage(text, senderHandle, senderInitial, msgId, threadKey) {
+                const key = threadKey || "peer";
+                const row = document.createElement("div");
+                row.className = "msg-row in";
+                if (msgId) row.id = "msg-" + msgId;
+
+                const avatar = document.createElement("div");
+                avatar.className = "msg-peer-avatar";
+                avatar.textContent = senderInitial || peer.initial;
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "msg-bubble-wrapper";
+
+                const bubble = document.createElement("div");
+                bubble.className = "ig-bubble";
+                bubble.textContent = text;
+
+                bubble.addEventListener("dblclick", function (e) {
+                    toggleHeartReaction(wrapper, e);
+                });
+
+                wrapper.appendChild(bubble);
+                row.appendChild(avatar);
+                row.appendChild(wrapper);
+
+                conversations[key].push(row);
+
+                if (activeThread === key) {
+                    activeMessagesList.appendChild(row);
+                    scrollBottom();
+                } else {
+                    const dot = document.getElementById(key === "bot" ? "botUnreadDot" : (key === "announcement" ? "announcementUnreadDot" : "peerUnreadDot"));
+                    if (dot) dot.classList.add("visible");
+                }
+
+                playSound("receive");
+                if (key === "peer") threadLastMsg.textContent = text;
+            }
+
+            function renderVoiceMessage(audioSrc, durationText, isOutgoing, msgId, threadKey) {
+                const key = threadKey || "peer";
+                const row = document.createElement("div");
+                row.className = "msg-row " + (isOutgoing ? "out" : "in");
+                if (msgId) row.id = "msg-" + msgId;
+
+                let avatar = null;
+                if (!isOutgoing) {
+                    avatar = document.createElement("div");
+                    avatar.className = "msg-peer-avatar";
+                    avatar.textContent = peer.initial;
+                }
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "msg-bubble-wrapper";
+
+                const bubble = document.createElement("div");
+                bubble.className = "ig-bubble ig-voice-bubble";
+
+                // Play / Pause toggle button
+                const playBtn = document.createElement("button");
+                playBtn.type = "button";
+                playBtn.className = "voice-play-btn";
+                playBtn.title = "Play Voice Message";
+                playBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+
+                // Audio object
+                const audio = new Audio(audioSrc);
+
+                // Waveform bars track
+                const track = document.createElement("div");
+                track.className = "voice-waveform-track";
+
+                const barHeights = [8, 14, 20, 10, 24, 18, 12, 22, 16, 26, 14, 20, 10, 16, 22, 12, 18, 8];
+                const bars = [];
+                barHeights.forEach(function (h) {
+                    const bar = document.createElement("div");
+                    bar.className = "voice-bar";
+                    bar.style.height = h + "px";
+                    track.appendChild(bar);
+                    bars.push(bar);
+                });
+
+                const durLabel = document.createElement("span");
+                durLabel.className = "voice-duration-label";
+                durLabel.textContent = durationText || "0:02";
+
+                function updateProgress(currentTime, totalDuration) {
+                    if (!totalDuration || totalDuration <= 0) return;
+                    const progress = Math.min(1, currentTime / totalDuration);
+                    const activeCount = Math.floor(progress * bars.length);
+                    bars.forEach(function (b, idx) {
+                        if (idx <= activeCount) {
+                            b.classList.add("active");
+                        } else {
+                            b.classList.remove("active");
+                        }
+                    });
+                    const mins = Math.floor(currentTime / 60);
+                    const secs = Math.floor(currentTime % 60);
+                    durLabel.textContent = mins + ":" + (secs < 10 ? "0" : "") + secs;
+                }
+
+                playBtn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    if (audio.paused) {
+                        document.querySelectorAll("audio").forEach(function (a) {
+                            if (a !== audio) a.pause();
+                        });
+                        audio.play().then(function () {
+                            playBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                        }).catch(function (err) {
+                            console.warn("Audio playback prevented:", err);
+                        });
+                    } else {
+                        audio.pause();
+                        playBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+                    }
+                });
+
+                audio.addEventListener("timeupdate", function () {
+                    updateProgress(audio.currentTime, audio.duration);
+                });
+
+                audio.addEventListener("ended", function () {
+                    playBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+                    bars.forEach(function (b) { b.classList.remove("active"); });
+                    durLabel.textContent = durationText || "0:02";
+                });
+
+                track.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    const rect = track.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const pct = Math.max(0, Math.min(1, clickX / rect.width));
+                    if (audio.duration && !isNaN(audio.duration)) {
+                        audio.currentTime = pct * audio.duration;
+                        updateProgress(audio.currentTime, audio.duration);
+                    }
+                });
+
+                bubble.appendChild(playBtn);
+                bubble.appendChild(track);
+                bubble.appendChild(durLabel);
+
+                bubble.addEventListener("dblclick", function (e) {
+                    toggleHeartReaction(wrapper, e);
+                });
+
+                wrapper.appendChild(bubble);
+
+                if (isOutgoing) {
+                    const statusLine = document.createElement("div");
+                    statusLine.className = "msg-status-line";
+                    statusLine.textContent = "Seen";
+                    wrapper.appendChild(statusLine);
+                }
+
+                if (avatar) row.appendChild(avatar);
+                row.appendChild(wrapper);
+
+                conversations[key].push(row);
+
+                if (activeThread === key) {
+                    activeMessagesList.appendChild(row);
+                    scrollBottom();
+                } else {
+                    const dot = document.getElementById(key === "bot" ? "botUnreadDot" : (key === "announcement" ? "announcementUnreadDot" : "peerUnreadDot"));
+                    if (dot) dot.classList.add("visible");
+                }
+
+                if (isOutgoing) {
+                    playSound("send");
+                    if (key === "peer") threadLastMsg.textContent = "You sent a voice message";
+                } else {
+                    playSound("receive");
+                    if (key === "peer") threadLastMsg.textContent = "Sent a voice message";
+                }
+            }
+
+            function toggleHeartReaction(wrapper, e) {
+                let badge = wrapper.querySelector(".bubble-heart-badge");
+                if (badge) {
+                    badge.remove();
+                } else {
+                    badge = document.createElement("div");
+                    badge.className = "bubble-heart-badge";
+                    badge.innerHTML = '❤️';
+                    wrapper.appendChild(badge);
+                    playSound("heart");
+                    triggerFlyingHeart(e ? e.clientX : null, e ? e.clientY : null);
+                }
+            }
+
+            function triggerFlyingHeart(x, y) {
+                const heart = document.createElement("div");
+                heart.className = "floating-heart";
+                heart.innerHTML = "❤️";
+                heart.style.left = (x || window.innerWidth / 2) + "px";
+                heart.style.top = (y || window.innerHeight / 2) + "px";
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 900);
+            }
+
+            function renderSystemChip(text) {
+                const chip = document.createElement("div");
+                chip.className = "ig-system-chip";
+                chip.textContent = text;
+                activeMessagesList.appendChild(chip);
+                scrollBottom();
+            }
+
+            // Server Wisdom (gyankibaat)
+            function renderWisdomCard(text) {
+                const row = document.createElement("div");
+                row.className = "msg-row in";
+
+                const avatar = document.createElement("div");
+                avatar.className = "msg-peer-avatar";
+                avatar.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+                avatar.textContent = "✦";
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "msg-bubble-wrapper";
+
+                const card = document.createElement("div");
+                card.className = "ig-bubble ig-wisdom-card";
+
+                const author = document.createElement("div");
+                author.className = "wisdom-author-tag";
+                author.innerHTML = `<span>gyan_bot_official</span> <svg width="12" height="12" viewBox="0 0 24 24" fill="#0095f6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`;
+
+                const quote = document.createElement("div");
+                quote.className = "wisdom-text";
+                quote.textContent = "“" + text + "”";
+
+                card.appendChild(author);
+                card.appendChild(quote);
+                wrapper.appendChild(card);
+                row.appendChild(avatar);
+                row.appendChild(wrapper);
+
+                conversations.bot.push(row);
+                botLastMsg.textContent = text;
+
+                if (activeThread === "bot") {
+                    activeMessagesList.appendChild(row);
+                    scrollBottom();
+                } else {
+                    document.getElementById("botUnreadDot").classList.add("visible");
+                }
+                playSound("receive");
+            }
+
+            // Announcement
+            function renderAnnouncementCard(text) {
+                const row = document.createElement("div");
+                row.className = "msg-row in";
+
+                const avatar = document.createElement("div");
+                avatar.className = "msg-peer-avatar";
+                avatar.style.background = "linear-gradient(135deg, #f43f5e, #9f1239)";
+                avatar.textContent = "📢";
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "msg-bubble-wrapper";
+
+                const card = document.createElement("div");
+                card.className = "ig-bubble ig-announcement-card";
+
+                const author = document.createElement("div");
+                author.className = "announcement-author-tag";
+                author.innerHTML = `<span>webdev3_broadcast</span>`;
+
+                const content = document.createElement("div");
+                content.textContent = text;
+
+                card.appendChild(author);
+                card.appendChild(content);
+                wrapper.appendChild(card);
+                row.appendChild(avatar);
+                row.appendChild(wrapper);
+
+                conversations.announcement.push(row);
+                announcementLastMsg.textContent = text;
+
+                if (activeThread === "announcement") {
+                    activeMessagesList.appendChild(row);
+                    scrollBottom();
+                } else {
+                    document.getElementById("announcementUnreadDot").classList.add("visible");
+                }
+                playSound("receive");
+            }
+
+            // ==================================================================
+            // SOCKET.IO CONNECTION (server.js STRICTLY UNTOUCHED)
+            // ==================================================================
+            let socket = null;
+            if (typeof io !== "undefined") {
+                socket = io("ws://localhost:8080/", {
+                    transports: ["websocket", "polling"],
+                    reconnectionAttempts: 25,
+                    reconnectionDelay: 1000
+                });
+
+                socket.on("connect", function () {
+                    document.getElementById("systemChipStatus").textContent = "Connected to Socket.IO Server on Port 8080";
+                });
+
+                socket.on("gyankibaat", function (msg) {
+                    renderWisdomCard(msg);
+                });
+
+                socket.on("join", function (msg) {
+                    renderSystemChip(msg || "New User Joined the Room");
+                });
+
+                socket.on("announcement", function (msg) {
+                    renderAnnouncementCard(msg);
+                });
+            }
+
+            // ==================================================================
+            // DISPATCHING & INPUT EVENTS
+            // ==================================================================
+            function handleSend() {
+                const text = messageInput.value.trim();
+                if (!text) {
+                    messageInput.focus();
+                    return;
+                }
+
+                const msgId = "ig_" + Date.now();
+
+                // 1. Render in self view
+                renderOutgoingMessage(text, msgId, activeThread);
+
+                // 2. Transmit to other tab via BroadcastChannel if in peer chat
+                if (activeThread === "peer") {
+                    channel.postMessage({
+                        type: "IG_MESSAGE",
+                        id: msgId,
+                        senderId: me.id,
+                        senderHandle: me.handle,
+                        senderInitial: me.initial,
+                        text: text
+                    });
+                } else if (activeThread === "bot") {
+                    // Simulate Bot Wisdom response after delay
+                    setTimeout(() => {
+                        const botWisdoms = [
+                            "Every master was once a beginner. Keep coding!",
+                            "Simplicity is the soul of efficiency.",
+                            "Clean code always looks like it was written by someone who cares.",
+                            "Full-duplex real-time WebSockets power the modern web."
+                        ];
+                        const quote = botWisdoms[Math.floor(Math.random() * botWisdoms.length)];
+                        renderWisdomCard(quote);
+                    }, 800);
+                }
+
+                // 3. Emit 'kuchbhi' to server.js
+                if (socket) {
+                    socket.emit("kuchbhi", `[@${me.handle} in ${activeThread}]: ${text}`);
+                }
+
+                // 4. Cancel typing
+                channel.postMessage({
+                    type: "TYPING",
+                    senderId: me.id,
+                    isTyping: false
+                });
+
+                messageInput.value = "";
+                updateComposerUI();
+                messageInput.focus();
+            }
+
+            channel.onmessage = function (event) {
+                const data = event.data;
+                if (!data) return;
+
+                if (data.type === "IG_MESSAGE") {
+                    renderIncomingMessage(data.text, data.senderHandle, data.senderInitial, data.id, "peer");
+                    igTypingRow.classList.remove("active");
+                } 
+                else if (data.type === "IG_VOICE_MESSAGE") {
+                    renderVoiceMessage(data.audioData, data.duration, false, data.id, "peer");
+                    igTypingRow.classList.remove("active");
+                } 
+                else if (data.type === "TYPING") {
+                    if (data.senderId !== me.id && activeThread === "peer") {
+                        if (data.isTyping) {
+                            igTypingRow.classList.add("active");
+                            scrollBottom();
+                        } else {
+                            igTypingRow.classList.remove("active");
+                        }
+                    }
+                } 
+                else if (data.type === "PRESENCE") {
+                    if (data.userId !== me.id) {
+                        document.getElementById("syncPresenceText").textContent = "2 Users Live";
+                        if (data.note) {
+                            peer.note = data.note;
+                            peerNoteText.textContent = data.note;
+                        }
+                    }
+                } 
+                else if (data.type === "NOTE_UPDATE") {
+                    if (data.userId !== me.id) {
+                        peer.note = data.note;
+                        peerNoteText.textContent = data.note;
+                        renderSystemChip("@" + peer.handle + " updated their note: “" + data.note + "”");
+                    }
+                }
+            };
+
+            function updateComposerUI() {
+                const hasText = messageInput.value.trim().length > 0;
+                if (hasText) {
+                    sendBtn.classList.add("visible");
+                    composerIcons.classList.add("hidden");
+                } else {
+                    sendBtn.classList.remove("visible");
+                    composerIcons.classList.remove("hidden");
+                }
+            }
+
+            messageInput.addEventListener("input", function () {
+                updateComposerUI();
+
+                if (activeThread === "peer") {
+                    channel.postMessage({
+                        type: "TYPING",
+                        senderId: me.id,
+                        isTyping: true
+                    });
+
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(function () {
+                        channel.postMessage({
+                            type: "TYPING",
+                            senderId: me.id,
+                            isTyping: false
+                        });
+                    }, 1400);
+                }
+            });
+
+            messageInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            });
+
+            sendBtn.addEventListener("click", handleSend);
+
+            heartBtn.addEventListener("click", function (e) {
+                triggerFlyingHeart(e.clientX, e.clientY);
+                messageInput.value = "❤️";
+                handleSend();
+            });
+
+            emojiToggleBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                emojiDrawer.classList.toggle("open");
+            });
+
+            document.querySelectorAll(".emoji-tile-ig").forEach(function (tile) {
+                tile.addEventListener("click", function () {
+                    messageInput.value += this.textContent;
+                    updateComposerUI();
+                    emojiDrawer.classList.remove("open");
+                    messageInput.focus();
+                });
+            });
+
+            document.addEventListener("click", function (e) {
+                if (!emojiDrawer.contains(e.target) && e.target !== emojiToggleBtn) {
+                    emojiDrawer.classList.remove("open");
+                }
+            });
+
+            soundToggleBtn.addEventListener("click", function () {
+                soundEnabled = !soundEnabled;
+                soundToggleBtn.style.color = soundEnabled ? "var(--ig-text-primary)" : "#ef4444";
+                if (soundEnabled) playSound("send");
+            });
+
+            document.getElementById("photoBtn").addEventListener("click", function () {
+                messageInput.value = "📷 [photo_share.jpg] ";
+                updateComposerUI();
+                messageInput.focus();
+            });
+
+            // Voice Message Recording & Playback
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let recStream = null;
+            let recTimerInterval = null;
+            let recStartTime = 0;
+            let isSyntheticRecording = false;
+
+            function formatRecTime(sec) {
+                const m = Math.floor(sec / 60);
+                const s = Math.floor(sec % 60);
+                return m + ":" + (s < 10 ? "0" : "") + s;
+            }
+
+            function startRecordingUI() {
+                composerTextRow.style.display = "none";
+                voiceRecordingBar.classList.add("active");
+                recTimerDisplay.textContent = "0:00";
+                recStartTime = Date.now();
+                recTimerInterval = setInterval(function () {
+                    const elapsed = Math.floor((Date.now() - recStartTime) / 1000);
+                    recTimerDisplay.textContent = formatRecTime(elapsed);
+                }, 500);
+            }
+
+            function stopRecordingUI() {
+                clearInterval(recTimerInterval);
+                recTimerInterval = null;
+                voiceRecordingBar.classList.remove("active");
+                composerTextRow.style.display = "flex";
+            }
+
+            function generateAudioDataUrl(durationSec) {
+                const sampleRate = 22050;
+                const numSamples = Math.floor(sampleRate * Math.max(1, durationSec));
+                const buffer = new ArrayBuffer(44 + numSamples * 2);
+                const view = new DataView(buffer);
+
+                function writeString(view, offset, string) {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                }
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, 36 + numSamples * 2, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true); // PCM
+                view.setUint16(22, 1, true); // mono
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * 2, true);
+                view.setUint16(32, 2, true);
+                view.setUint16(34, 16, true); // 16-bit
+                writeString(view, 36, 'data');
+                view.setUint32(40, numSamples * 2, true);
+
+                for (let i = 0; i < numSamples; i++) {
+                    const t = i / sampleRate;
+                    const freq = 340 + Math.sin(t * 5) * 80;
+                    const env = Math.min(1, Math.sin(Math.PI * (i / numSamples)));
+                    const sample = Math.sin(2 * Math.PI * freq * t) * 0.4 + Math.sin(4 * Math.PI * freq * t) * 0.2;
+                    view.setInt16(44 + i * 2, sample * env * 32767, true);
+                }
+
+                const blob = new Blob([view], { type: 'audio/wav' });
+                return new Promise(function (resolve) {
+                    const reader = new FileReader();
+                    reader.onloadend = function () { resolve(reader.result); };
+                    reader.readAsDataURL(blob);
+                });
+            }
+
+            const micBtn = document.getElementById("micBtn");
+            if (micBtn) {
+                micBtn.addEventListener("click", async function () {
+                    audioChunks = [];
+                    isSyntheticRecording = false;
+
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        try {
+                            recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                            mediaRecorder = new MediaRecorder(recStream);
+                            mediaRecorder.ondataavailable = function (e) {
+                                if (e.data && e.data.size > 0) {
+                                    audioChunks.push(e.data);
+                                }
+                            };
+                            startRecordingUI();
+                            mediaRecorder.start(200);
+                            return;
+                        } catch (err) {
+                            console.warn("Microphone access unavailable or denied, falling back to simulated voice recording:", err);
+                        }
+                    }
+
+                    // Fallback to synthetic audio recording if mic hardware or permission is unavailable
+                    isSyntheticRecording = true;
+                    startRecordingUI();
+                });
+            }
+
+            if (cancelRecBtn) {
+                cancelRecBtn.addEventListener("click", function () {
+                    stopRecordingUI();
+                    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                        mediaRecorder.ondataavailable = null;
+                        mediaRecorder.onstop = null;
+                        mediaRecorder.stop();
+                    }
+                    if (recStream) {
+                        recStream.getTracks().forEach(function (track) { track.stop(); });
+                        recStream = null;
+                    }
+                    audioChunks = [];
+                });
+            }
+
+            if (sendVoiceBtn) {
+                sendVoiceBtn.addEventListener("click", async function () {
+                    const elapsedSec = Math.max(1, Math.floor((Date.now() - recStartTime) / 1000));
+                    const durationStr = formatRecTime(elapsedSec);
+                    const msgId = "voice_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5);
+
+                    if (isSyntheticRecording || !mediaRecorder || mediaRecorder.state === "inactive") {
+                        stopRecordingUI();
+                        const audioUrl = await generateAudioDataUrl(elapsedSec);
+                        renderVoiceMessage(audioUrl, durationStr, true, msgId, activeThread);
+                        if (activeThread === "peer") {
+                            channel.postMessage({
+                                type: "IG_VOICE_MESSAGE",
+                                audioData: audioUrl,
+                                duration: durationStr,
+                                id: msgId,
+                                senderId: me.id,
+                                senderHandle: me.handle
+                            });
+                        }
+                        if (socket && socket.connected) {
+                            socket.emit("kuchbhi", "[Voice Note • " + durationStr + "]");
+                        }
+                        return;
+                    }
+
+                    mediaRecorder.onstop = function () {
+                        const mimeType = mediaRecorder.mimeType || "audio/webm";
+                        const blob = new Blob(audioChunks, { type: mimeType });
+                        const reader = new FileReader();
+                        reader.onloadend = function () {
+                            const base64Audio = reader.result;
+                            renderVoiceMessage(base64Audio, durationStr, true, msgId, activeThread);
+                            if (activeThread === "peer") {
+                                channel.postMessage({
+                                    type: "IG_VOICE_MESSAGE",
+                                    audioData: base64Audio,
+                                    duration: durationStr,
+                                    id: msgId,
+                                    senderId: me.id,
+                                    senderHandle: me.handle
+                                });
+                            }
+                            if (socket && socket.connected) {
+                                socket.emit("kuchbhi", "[Voice Note • " + durationStr + "]");
+                            }
+                        };
+                        reader.readAsDataURL(blob);
+
+                        if (recStream) {
+                            recStream.getTracks().forEach(function (track) { track.stop(); });
+                            recStream = null;
+                        }
+                    };
+
+                    stopRecordingUI();
+                    mediaRecorder.stop();
+                });
+            }
+
+            // Theme Management (Light & Dark Themes)
+            const themeToggleBtn = document.getElementById("themeToggleBtn");
+            const themeIcon = document.getElementById("themeIcon");
+            let currentTheme = localStorage.getItem("ig_theme") || "dark";
+
+            function applyTheme(theme) {
+                currentTheme = theme;
+                document.body.setAttribute("data-theme", theme);
+                localStorage.setItem("ig_theme", theme);
+
+                if (theme === "light") {
+                    // Moon Icon when in Light Theme (to switch to Dark)
+                    themeIcon.innerHTML = '<path d="M12.3 2a10 10 0 0 0-.19 14 10 10 0 0 0 11.89 4 1 1 0 0 0 .62-1.28 1 1 0 0 0-.82-.72 8 8 0 0 1-6.72-8 8 8 0 0 1 4.5-7.14 1 1 0 0 0 .5-1.2A1 1 0 0 0 21 2a10.15 10.15 0 0 0-8.7 0z"/>';
+                    if (themeToggleBtn) themeToggleBtn.title = "Switch to Dark Theme";
+                } else {
+                    // Sun Icon when in Dark Theme (to switch to Light)
+                    themeIcon.innerHTML = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>';
+                    if (themeToggleBtn) themeToggleBtn.title = "Switch to Light Theme";
+                }
+            }
+
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener("click", function () {
+                    applyTheme(currentTheme === "dark" ? "light" : "dark");
+                });
+            }
+
+            applyTheme(currentTheme);
+
+            // Initialize view
+            renderIdentity();
+            messageInput.focus();
+
+        })();
+    </script>
+</body>
+</html>
